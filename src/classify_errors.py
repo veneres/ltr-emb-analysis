@@ -104,8 +104,6 @@ def main():
 
         print(clf.best_params_)
 
-        clf
-
         ba_score = balanced_accuracy_score(test_y, clf.predict(test_X))
         acc = accuracy_score(test_y, clf.predict(test_X))
 

@@ -24,10 +24,11 @@ from collections import defaultdict
 
 # %%
 import ir_datasets
+DATA_PATH = "../../ltr-emb-analysis-data/results"
 
 EntryRes = namedtuple("EntryRes", ["mrr", "model"])
 models = ["monobert", "monoelectra", "monoroberta"]
-main_path = Path("../../ir-embedding-analysis-data/results")
+main_path = Path()
 res = defaultdict(list)
 for model_name in tqdm(models):
     dir_path = Path(main_path / model_name)

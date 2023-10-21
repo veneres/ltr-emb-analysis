@@ -31,7 +31,8 @@ plt.rcParams.update({
 # %%
 from pathlib import Path
 
-res_dir = Path("../../ir-embedding-analysis-data/pairwise_dist/monobert/trec-dl-2019")
+DATA_PATH = "../../ltr-emb-analysis-data/pairwise_dist/monobert/trec-dl-2019"
+res_dir = Path(DATA_PATH)
 measure = "cosine"
 
 # %%
