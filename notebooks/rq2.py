@@ -24,7 +24,7 @@ from pathlib import Path
 # %%
 
 DISTANCES = ["cosine", "l2", "js"]
-BASE_FOLDER = Path("../../ltr-emb-analysis-data//classifiers/")
+BASE_FOLDER = Path("../../ltr-emb-analysis-data/classifiers/")
 
 # %%
 for model in ["monobert", "monoroberta", "monoelectra"]:

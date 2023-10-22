@@ -2,6 +2,15 @@
 
 Proof of concept of the work for CIKM 2023.
 
+
+## Preliminary
+
+All the suggested paths are structured in a way that helps the replication with the provided notebooks. This is because
+we normally loop in the same folder to replicate the analysis for the different datasets and different models considered.
+
+The code of the notebooks to create the tables and figures are inside the folder `notebooks` and the can be converted 
+in actual jupyter notebook using [jupytext](https://github.com/mwouts/jupytext).
+
 ## Setup
 To replicate the experiment you can use the Dockerfile provided that use a 
 [Nvidia docker image](https://docs.nvidia.com/deeplearning/frameworks/user-guide/index.html) 
@@ -39,6 +48,14 @@ where:
 For our convenience we preprocessed the ir_dataset in a big pytorch tensor. We know that this is not a feasible solution
 for all the use cases but it was necessary for us to quickly load the triples during the training phases.
 
+To preprocess a dataset you can use a command like this:
+
+```bash
+python preproc_ir_datasets.py "msmarco-passage/train/judged" "<path-to-data-folder>/ir-datasets-pt/msmarco-passage_train.pt"
+```
+
+Where `"msmarco-passage/train/judged"` is the `ir_dataset` tagname of the dataset used for training and 
+`<path-to-data-folder>/ir-datasets-pt/` is the path where to store the preprocessed `ir-datasets`.
 
 ## Fine-tuning
 
@@ -46,13 +63,17 @@ The command to replicate the fine tuning are the following:
 
 ```bash
 
-python finetune_mono_x.py bert msmarco-passage/train/judged /data/ir_dataset_torch/msmarco-passage_train_judged_triples.pt --batch_size=64 --save_after=10000 --device=cuda --output_dir=data/ltr-emb-analysis/models/monobert
-
-python finetune_mono_x.py roberta msmarco-passage/train/judged /data/ir_dataset_torch/msmarco-passage_train_judged_triples.pt --batch_size=32 --save_after=10000 --device=cuda --output_dir=data/ltr-emb-analysis/models/monoroberta
-
-python finetune_mono_x.py electra msmarco-passage/train/judged /data/ir_dataset_torch/msmarco-passage_train_judged_triples.pt --batch_size=32 --save_after=10000 --device=cuda --output_dir=data/ltr-emb-analysis/models/monoelectra
-
+python finetune_mono_x.py <llm> msmarco-passage/train/judged "<path-to-data-folder>/ir-datasets-pt/msmarco-passage_train.pt" --batch_size=64 --save_after=10000 --device=cuda --output_dir="<path-to-data-folder>/models/<llm_name>"
 ```
+
+Where `<llm>` is the tagname for the LLM used. Valid tagnames for the script are:
+
+- `bert`
+- `roberta`
+- `electra`
+
+
+Finally, `"<path-to-data-folder>/models/<llm_name>"` is the path where to store the final model.
 
 The pre-trained models are available at the following links:
 
@@ -63,42 +84,46 @@ The pre-trained models are available at the following links:
 If you want to check if the models performance you can run
 
 ```bash
-python compute_scores.py /data/ltr-emb-analysis/models/monobert bert-base-uncased msmarco-passage/dev/small /data/ir_dataset_torch/msmarco-passage_dev_small.pt /data/ir_embedding_analysis/results/monobert/scores_dev_small.csv
-
-python compute_scores.py /data/ltr-emb-analysis/models/monoroberta roberta-base msmarco-passage/dev/small /data/ir_dataset_torch/msmarco-passage_dev_small.pt /data/ir_embedding_analysis/results/monoroberta/scores_dev_small.csv
-
-python compute_scores.py /data/ltr-emb-analysis/models/monoelectra google/electra-base-discriminator msmarco-passage/dev/small /data/ir_dataset_torch/msmarco-passage_dev_small.pt /data/ir_embedding_analysis/results/monoelectra/scores_dev_small.csv
+python compute_scores.py "<path-to-data-folder>/models/<llm_name>" <tokenizer> msmarco-passage/dev/small "<path-to-data-folder>/ir-datasets-pt/msmarco-passage_dev_small.pt"  <path-to-data-folder>/results/<llm_name>.csv 
 ```
 
-
-<!--
-## RQ1
-
-### Compute distances
-
+Where `<tokenizer>` is the tokenizer huggingface name for the model used, `msmarco-passage/dev/small` is the dataset 
+used for the validate the quality of the trained model and 
+`<path-to-data-folder>/ir-datasets-pt/msmarco-passage_dev_small.pt` is the preprocessed version of the same dataset.
+and `<path-to-data-folder>/results/<llm_name>.csv` is the output path where to save the CSV with the results. 
 
 
-python compute_dists.py /data/ltr-emb-analysis/models/monobert bert-base-uncased msmarco-passage/trec-dl-2019/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2019_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/monobert/trec-dl-2019/cosine.csv --metric=cosine
-python compute_dists.py /data/ltr-emb-analysis/models/monobert bert-base-uncased msmarco-passage/trec-dl-2019/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2019_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/bert/trec-dl-2019/l2.csv --metric=l2
-python compute_dists.py /data/ltr-emb-analysis/models/monobert bert-base-uncased msmarco-passage/trec-dl-2019/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2019_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/bert/trec-dl-2019/dot_prod.csv --metric=dot_prod
+## RQ1 - RQ2
 
+## Compute distances
 
-python compute_dists.py /data/ltr-emb-analysis/models/monobert bert-base-uncased msmarco-passage/trec-dl-2020/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2020_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/bert/trec-dl-2020/cosine.csv --metric=cosine
-python compute_dists.py /data/ltr-emb-analysis/models/monobert bert-base-uncased msmarco-passage/trec-dl-2020/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2020_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/bert/trec-dl-2020/l2.csv --metric=l2
-python compute_dists.py /data/ltr-emb-analysis/models/monobert bert-base-uncased msmarco-passage/trec-dl-2020/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2020_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/bert/trec-dl-2020/dot_prod.csv --metric=dot_prod
+To compute the distances between the embeddings you can use the `compute_dists.py` script in the following way:
 
+```bash
+python compute_dists.py "<path-to-data-folder>/models/<llm_name>" `<tokenizer>` <trec-dl-name> "<path-to-data-folder>/ir-datasets-pt/<trec-dl-name>" "<path-to-data-folder>/pairwise_dist/<model-name>/<trec-dl-name>/<metric-name>.csv" --metric=<metric-name>
+```
 
+Where the `<trec-dl-name>` is the ir_dataset name for the two datasets under consideration, namely 
+`msmarco-passage/trec-dl-2019/judged` and `msmarco-passage/trec-dl-2020/judged`.
+`"<path-to-data-folder>/pairwise_dist/<model-name>/<trec-dl-name>/<metric-name>.csv"` is instead the default path where
+to output the distances results. 
+Finally `<metric-name>` is one of the possibile metric used. The available metric are: 
+- `cosine`
+- `l2`
+- `js`
 
-python compute_dists.py /data/ltr-emb-analysis/models/monoroberta roberta-base msmarco-passage/trec-dl-2019/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2019_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/monoroberta/trec-dl-2019/cosine.csv --metric=cosine
-python compute_dists.py /data/ltr-emb-analysis/models/monoroberta roberta-base msmarco-passage/trec-dl-2019/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2019_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/monoroberta/trec-dl-2019/l2.csv --metric=l2
-python compute_dists.py /data/ltr-emb-analysis/models/monoroberta roberta-base msmarco-passage/trec-dl-2019/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2019_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/monoroberta/trec-dl-2019/dot_prod.csv --metric=dot_prod
+## Classify errors
 
+The script to classify the errors made by the models is `classify_errors.py` and has to be used in the following way:
 
-python compute_dists.py /data/ltr-emb-analysis/models/monoroberta roberta-base msmarco-passage/trec-dl-2020/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2020_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/monoroberta/trec-dl-2020/cosine.csv --metric=cosine
-python compute_dists.py /data/ltr-emb-analysis/models/monoroberta roberta-base msmarco-passage/trec-dl-2020/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2020_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/monoroberta/trec-dl-2020/l2.csv --metric=l2
-python compute_dists.py /data/ltr-emb-analysis/models/monoroberta roberta-base msmarco-passage/trec-dl-2020/judged /data/ir_dataset_torch/msmarco-passage_trec-dl-2020_judged_qrel.pt /data/ltr-emb-analysis/pairwise_dist/monoroberta/trec-dl-2020/dot_prod.csv --metric=dot_prod
+```bash
+python classify_errors.py "<path-to-data-folder>/pairwise_dist/<model-name>/<trec-dl-name>/<metric-name>.csv" "<path-to-data-folder>/classifiers/<model-name>/acc.csv"
+```
+where `"<path-to-data-folder>/classifiers/<model-name>/acc.csv"` is the path where to store the results of the evaluation.
 
--->
+*Note*: in the published paper there is a subtle typo in the following phrase:
+"We then evaluate the classification accuracy on datasets created from trec-dl-20*19*".
+Of course, the test has been dataset w.r.t the training one, we perform the evaluation on "trec-dl-20*20*"
 
 If you reuse or like the work, cite:
 

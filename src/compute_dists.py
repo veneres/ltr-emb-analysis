@@ -183,7 +183,7 @@ def main():
                         default=True)
 
     parser.add_argument("--metric",
-                        help="Metric to be used, possible choice: cosine, l2, dot_prod. Default cosine",
+                        help="Metric to be used, possible choice: cosine, l2, dot_prod, js. Default cosine",
                         type=str,
                         default="cosine")
     args = parser.parse_args()
